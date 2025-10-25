@@ -1,0 +1,18 @@
+# YOLOv11 Dataset Configuration
+path: D:/TATATA/halo/dataset  # root folder dataset
+
+train: train/images
+val: valid/images
+test: test/images
+
+# Jumlah kelas
+nc: 6
+
+# Nama kelas
+names:
+  0: ripe-banana
+  1: ripe-papaya
+  2: unripe-papaya
+  3: ripe-tomato
+  4: unripe-banana
+  5: unripe-tomato

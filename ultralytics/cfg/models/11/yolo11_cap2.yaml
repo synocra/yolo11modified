@@ -17,44 +17,44 @@ scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call 
 # YOLO11n backbone
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, Conv, [64, 3, 2]]              # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]]             # 1-P2/4
-  - [-1, 2, C3k2, [256, False, 0.25]]      # 2-P2/4  ← tap point for P2
-  - [-1, 1, Conv, [256, 3, 2]]             # 3-P3/8
-  - [-1, 2, C3k2, [512, False, 0.25]]      # 4-P3/8  ← tap point for P3
-  - [-1, 1, Conv, [512, 3, 2]]             # 5-P4/16
-  - [-1, 2, C3k2, [512, False, 0.5]]       # 6-P4/16 ← tap point for P4
-  - [-1, 1, Conv, [1024, 3, 2]]            # 7-P5/32
-  - [-1, 2, C3k2, [1024, False]]           # 8-P5/32
-  - [-1, 1, SPPF, [1024, 5, 16]]          # 9  MaxPool + CA
-  - [-1, 2, C2PSA, [1024]]                 # 10 ← P5 enriched
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]] # 2-P2/4  ← tap point for P2
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]] # 4-P3/8  ← tap point for P3
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, False, 0.5]] # 6-P4/16 ← tap point for P4
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, False]] # 8-P5/32
+  - [-1, 1, SPPF, [1024, 5, 16]] # 9  MaxPool + CA
+  - [-1, 2, C2PSA, [1024]] # 10 ← P5 enriched
 
 # Head with P2 branch
 head:
   # ── Top-down (FPN) ─────────────────────────────────────────────
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]   # 11  P5→P4 scale
-  - [[-1, 6], 1, Concat, [1]]                     # 12  cat backbone P4
-  - [-1, 2, C3k2, [512, False]]                   # 13  fused P4 features
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 11  P5→P4 scale
+  - [[-1, 6], 1, Concat, [1]] # 12  cat backbone P4
+  - [-1, 2, C3k2, [512, False]] # 13  fused P4 features
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]   # 14  P4→P3 scale
-  - [[-1, 4], 1, Concat, [1]]                     # 15  cat backbone P3
-  - [-1, 2, C3k2, [256, False]]                   # 16  fused P3 features
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 14  P4→P3 scale
+  - [[-1, 4], 1, Concat, [1]] # 15  cat backbone P3
+  - [-1, 2, C3k2, [256, False]] # 16  fused P3 features
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]   # 17  P3→P2 scale  ★ NEW
-  - [[-1, 2], 1, Concat, [1]]                     # 18  cat backbone P2 ★ NEW
-  - [-1, 2, C3k2, [128, False]]                   # 19  P2/4-xsmall  ★ NEW DETECT LAYER
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 17  P3→P2 scale  ★ NEW
+  - [[-1, 2], 1, Concat, [1]] # 18  cat backbone P2 ★ NEW
+  - [-1, 2, C3k2, [128, False]] # 19  P2/4-xsmall  ★ NEW DETECT LAYER
 
   # ── Bottom-up (PAN) ────────────────────────────────────────────
-  - [-1, 1, Conv, [128, 3, 2]]                    # 20  P2→P3 downsample ★ NEW
-  - [[-1, 16], 1, Concat, [1]]                    # 21  cat fused P3    ★ NEW
-  - [-1, 2, C3k2, [256, False]]                   # 22  P3/8-small  ★ shifted
+  - [-1, 1, Conv, [128, 3, 2]] # 20  P2→P3 downsample ★ NEW
+  - [[-1, 16], 1, Concat, [1]] # 21  cat fused P3    ★ NEW
+  - [-1, 2, C3k2, [256, False]] # 22  P3/8-small  ★ shifted
 
-  - [-1, 1, Conv, [256, 3, 2]]                    # 23
-  - [[-1, 13], 1, Concat, [1]]                    # 24  cat fused P4
-  - [-1, 2, C3k2, [512, False, 0.5, 1, False, True, 16, False, True, "CA"]]   # 25  P4/16-medium
+  - [-1, 1, Conv, [256, 3, 2]] # 23
+  - [[-1, 13], 1, Concat, [1]] # 24  cat fused P4
+  - [-1, 2, C3k2, [512, False, 0.5, 1, False, True, 16, False, True, "CA"]] # 25  P4/16-medium
 
-  - [-1, 1, Conv, [512, 3, 2]]                    # 26
-  - [[-1, 10], 1, Concat, [1]]                    # 27  cat head P5
-  - [-1, 2, C3k2, [1024, True, 0.5, 1, False, True, 16, False, True, "CA"]]   # 28  P5/32-large
+  - [-1, 1, Conv, [512, 3, 2]] # 26
+  - [[-1, 10], 1, Concat, [1]] # 27  cat head P5
+  - [-1, 2, C3k2, [1024, True, 0.5, 1, False, True, 16, False, True, "CA"]] # 28  P5/32-large
 
-  - [[19, 22, 25, 28], 1, Detect, [nc]]           # Detect(P2, P3, P4, P5)
+  - [[19, 22, 25, 28], 1, Detect, [nc]] # Detect(P2, P3, P4, P5)
